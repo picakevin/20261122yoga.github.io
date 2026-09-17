@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>20261122 成果發表會線上報名</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+    body { font-family: 'Noto Sans TC', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef } = React;
+
+    function App() {
+      const [formData, setFormData] = useState({
+        name: '',
+        identity: '🅰️ 表演者（報名費 $200 元）',
+        performanceName: '',
+        performanceType: '舞綢',
+        extraAudience: '０位',
+        paymentMethod: 'LINE PAY'
+      });
+
+      const [isSubmitting, setIsSubmitting] = useState(false);
+      const [isSubmitted, setIsSubmitted] = useState(false);
+      const [errors, setErrors] = useState({});
+      const iframeRef = useRef(null);
+
+      // 計算金額
+      const calculateTotal = () => {
+        let total = 0;
+        if (formData.identity.includes('表演者')) {
+          total += 200;
+          if (formData.extraAudience === '１位') total += 350;
+          if (formData.extraAudience === '２位') total += 700;
+        } else {
+          total += 350;
+        }
+        return total;
+      };
+
+      const validate = () => {
+        const errs = {};
+        if (!formData.name.trim()) errs.name = '請填寫您的姓名';
+        if (formData.identity.includes('表演者') && !formData.performanceName.trim()) {
+          errs.performanceName = '表演者請填寫表演名稱';
+        }
+        setErrors(errs);
+        return Object.keys(errs).length === 0;
+      };
+
+      const handleSubmit = (e) => {
+        if (!validate()) {
+          e.preventDefault();
+          return;
+        }
+        setIsSubmitting(true);
+      };
+
+      const handleIframeLoad = () => {
+        if (isSubmitting) {
+          setIsSubmitting(false);
+          setIsSubmitted(true);
+        }
+      };
+
+      const handleReset = () => {
+        setFormData({
+          name: '',
+          identity: '🅰️ 表演者（報名費 $200 元）',
+          performanceName: '',
+          performanceType: '舞綢',
+          extraAudience: '０位',
+          paymentMethod: 'LINE PAY'
+        });
+        setErrors({});
+        setIsSubmitted(false);
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between relative overflow-hidden">
+          {/* 背景裝飾光暈 */}
+          <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-1/3 -right-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-40 left-1/3 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
+
+          {/* 頁首 */}
+          <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-xl shadow-lg shadow-indigo-500/25">
+                  <i className="fa-solid fa-wand-magic-sparkles text-white"></i>
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                    20261122 成果發表會
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                      直連 Google 表單
+                    </span>
+                  </h1>
+                </div>
+              </div>
+              <div className="flex items-center text-xs text-slate-400 gap-2 bg-slate-800/60 px-3 py-1.5 rounded-full border border-slate-700/50">
+                <i className="fa-regular fa-calendar text-indigo-400"></i>
+                <span>2026.11.22 (日)</span>
+              </div>
+            </div>
+          </header>
+
+          {/* 主要區域 */}
+          <main className="max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 md:py-12 z-10 flex-grow">
+            {isSubmitted ? (
+              /* 報名成功畫面 */
+              <div className="bg-slate-900/80 border border-emerald-500/40 rounded-3xl p-8 md:p-12 text-center shadow-2xl backdrop-blur-xl relative overflow-hidden">
+                <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-400 shadow-inner">
+                  <i className="fa-solid fa-circle-check text-4xl"></i>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 tracking-tight">報名資料已成功送出！</h2>
+                <p className="text-slate-300 max-w-md mx-auto mb-6 text-sm sm:text-base leading-relaxed">
+                  感謝您的參與，資料已同步寫入主辦單位的 Google 表單記錄。請確認以下應繳明細並完成繳費。
+                </p>
+
+                <div className="bg-slate-950/70 rounded-2xl p-5 border border-slate-800 text-left max-w-sm mx-auto mb-8 space-y-2.5 text-sm">
+                  <div className="flex justify-between text-slate-400">
+                    <span>報名姓名</span>
+                    <span className="font-semibold text-slate-200">{formData.name}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>參加身分</span>
+                    <span className="font-semibold text-slate-200">{formData.identity.includes('表演者') ? '表演者' : '一般觀眾'}</span>
+                  </div>
+                  {formData.identity.includes('表演者') && (
+                    <React.Fragment>
+                      <div className="flex justify-between text-slate-400">
+                        <span>演出項目</span>
+                        <span className="font-semibold text-slate-200">{formData.performanceType}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-400">
+                        <span>攜帶觀眾</span>
+                        <span className="font-semibold text-slate-200">{formData.extraAudience}</span>
+                      </div>
+                    </React.Fragment>
+                  )}
+                  <div className="flex justify-between text-slate-400">
+                    <span>預計繳費方式</span>
+                    <span className="font-semibold text-indigo-400">{formData.paymentMethod}</span>
+                  </div>
+                  <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-base">
+                    <span className="font-semibold text-white">合計應付金額</span>
+                    <span className="font-bold text-emerald-400 text-xl font-mono">${calculateTotal()} 元</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleReset}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-all font-medium text-sm border border-slate-700"
+                >
+                  再填寫一筆報名
+                </button>
+              </div>
+            ) : (
+              /* 表單填寫區域 */
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-slate-900/60 border border-indigo-500/20 rounded-3xl p-6 sm:p-8 backdrop-blur-md">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-indigo-500/20 rounded-2xl text-indigo-300 shrink-0">
+                      <i className="fa-solid fa-circle-info text-xl"></i>
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-white mb-2 tracking-tight">歡迎報名 20261122 成果發表會</h2>
+                      <p className="text-slate-300 text-sm leading-relaxed mb-4">
+                        無論您是登上舞臺展現自我極限的空中藝術家，還是前來給予熱烈掌聲的親友觀眾，我們都期待與您相見！
+                      </p>
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        <span className="bg-indigo-950/80 border border-indigo-600/40 text-indigo-200 px-3 py-1 rounded-full font-medium">
+                          🎪 表演者 $200 元
+                        </span>
+                        <span className="bg-purple-950/80 border border-purple-600/40 text-purple-200 px-3 py-1 rounded-full font-medium">
+                          🎟️ 觀眾門票 $350 元
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 隱藏的 iframe 用於背景發送資料給 Google Form */}
+                <iframe
+                  name="hidden_google_form_iframe"
+                  id="hidden_google_form_iframe"
+                  ref={iframeRef}
+                  onLoad={handleIframeLoad}
+                  className="hidden"
+                />
+
+                <form
+                  action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSc8fUeuC_z3c2KcsqUypJrGnrxmQbH8z3l4TpFUkJjmEifdTg/formResponse"
+                  method="POST"
+                  target="hidden_google_form_iframe"
+                  onSubmit={handleSubmit}
+                  className="space-y-6"
+                >
+                  {/* 基本資料卡 */}
+                  <div className="bg-slate-900/70 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-md shadow-xl space-y-6">
+                    <h3 className="text-base font-semibold text-indigo-300 flex items-center gap-2 border-b border-slate-800 pb-3">
+                      <i className="fa-regular fa-user"></i> 基本聯絡資料
+                    </h3>
+
+                    {/* 姓名 */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-200 mb-2">
+                        姓名 <span className="text-rose-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="entry.1136729358"
+                        value={formData.name}
+                        onChange={(e) => {
+                          setFormData({ ...formData, name: e.target.value });
+                          if (errors.name) setErrors({ ...errors, name: '' });
+                        }}
+                        placeholder="請輸入您的真實姓名或稱呼"
+                        className={`w-full px-4 py-3 bg-slate-950/80 border ${
+                          errors.name ? 'border-rose-500' : 'border-slate-800 focus:border-indigo-500'
+                        } rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm`}
+                      />
+                      {errors.name && <p className="text-xs text-rose-400 mt-1.5">{errors.name}</p>}
+                    </div>
+
+                    {/* 參加身分 */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-200 mb-3">
+                        您的參加身分 <span className="text-rose-400">*</span>
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {[
+                          {
+                            value: '🅰️ 表演者（報名費 $200 元）',
+                            title: '表演者',
+                            price: '$200',
+                            desc: '登上舞臺演出空中藝術'
+                          },
+                          {
+                            value: '🅱️ 觀眾（報名費 $350 元）',
+                            title: '觀賞嘉賓',
+                            price: '$350',
+                            desc: '進場為表演者加油喝采'
+                          }
+                        ].map((item) => {
+                          const isSelected = formData.identity === item.value;
+                          return (
+                            <label
+                              key={item.value}
+                              className={`relative flex flex-col p-4 rounded-2xl cursor-pointer border transition-all ${
+                                isSelected
+                                  ? 'bg-indigo-600/15 border-indigo-500 shadow-md shadow-indigo-500/10'
+                                  : 'bg-slate-950/50 border-slate-800/80 hover:border-slate-700'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="entry.971609923"
+                                value={item.value}
+                                checked={isSelected}
+                                onChange={() => setFormData({ ...formData, identity: item.value })}
+                                className="sr-only"
+                              />
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="font-semibold text-white text-sm">{item.title}</span>
+                                <span className="text-xs px-2.5 py-0.5 rounded-full font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                                  {item.price}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-400">{item.desc}</p>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 表演者專屬資料區塊 */}
+                  {formData.identity.includes('表演者') && (
+                    <div className="bg-slate-900/70 border border-indigo-500/30 rounded-3xl p-6 sm:p-8 backdrop-blur-md shadow-xl space-y-6 relative">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 className="text-base font-semibold text-indigo-300 flex items-center gap-2">
+                          <i className="fa-solid fa-music"></i> 表演者填寫區
+                        </h3>
+                        <span className="text-xs bg-indigo-500/10 text-indigo-400 px-2.5 py-1 rounded-lg border border-indigo-500/20">
+                          表演者專屬
+                        </span>
+                      </div>
+
+                      {/* 表演名稱 */}
+                      <div>
+                        <label className="block text-sm font-medium text-slate-200 mb-1">
+                          表演名稱 <span className="text-rose-400">*</span>
+                        </label>
+                        <p className="text-xs text-slate-400 mb-2">請填寫您的表演節目名稱或主題</p>
+                        <input
+                          type="text"
+                          name="entry.1198216461"
+                          value={formData.performanceName}
+                          onChange={(e) => {
+                            setFormData({ ...formData, performanceName: e.target.value });
+                            if (errors.performanceName) setErrors({ ...errors, performanceName: '' });
+                          }}
+                          placeholder="例：夜之羽翼、星空獨舞..."
+                          className={`w-full px-4 py-3 bg-slate-950/80 border ${
+                            errors.performanceName ? 'border-rose-500' : 'border-slate-800 focus:border-indigo-500'
+                          } rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm`}
+                        />
+                        {errors.performanceName && (
+                          <p className="text-xs text-rose-400 mt-1.5">{errors.performanceName}</p>
+                        )}
+                      </div>
+
+                      {/* 演出項目 */}
+                      <div>
+                        <label className="block text-sm font-medium text-slate-200 mb-1">
+                          演出項目 <span className="text-slate-400 text-xs font-normal">（請選擇道具類型）</span>
+                        </label>
+                        <div className="grid grid-cols-3 gap-3 pt-2">
+                          {['舞綢', '雙吊點', '空中環'].map((type) => {
+                            const isSelected = formData.performanceType === type;
+                            return (
+                              <label
+                                key={type}
+                                className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl cursor-pointer border text-center transition-all ${
+                                  isSelected
+                                    ? 'bg-indigo-600/20 border-indigo-500 text-white font-medium shadow-md shadow-indigo-500/10'
+                                    : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="entry.21784582"
+                                  value={type}
+                                  checked={isSelected}
+                                  onChange={() => setFormData({ ...formData, performanceType: type })}
+                                  className="sr-only"
+                                />
+                                <span className="text-sm">{type}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 預計攜帶觀眾人數 */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-sm font-medium text-slate-200">
+                            預計攜帶觀眾人數
+                          </label>
+                          <span className="text-xs text-slate-400">親友票每位 $350 元</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-2.5">
+                          若有親友欲到場觀看與加油，請選擇人數以便主辦單位安排席位
+                        </p>
+                        <div className="grid grid-cols-3 gap-3">
+                          {['０位', '１位', '２位'].map((opt) => {
+                            const isSelected = formData.extraAudience === opt;
+                            return (
+                              <label
+                                key={opt}
+                                className={`flex items-center justify-center gap-2 p-3 rounded-xl cursor-pointer border transition-all ${
+                                  isSelected
+                                    ? 'bg-indigo-600/20 border-indigo-500 text-white font-medium'
+                                    : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="entry.2071752868"
+                                  value={opt}
+                                  checked={isSelected}
+                                  onChange={() => setFormData({ ...formData, extraAudience: opt })}
+                                  className="sr-only"
+                                />
+                                <i className="fa-solid fa-users text-indigo-400 opacity-80"></i>
+                                <span className="text-sm">{opt}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 結帳與費用資訊 */}
+                  <div className="bg-slate-900/70 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-md shadow-xl space-y-6">
+                    <h3 className="text-base font-semibold text-indigo-300 flex items-center gap-2 border-b border-slate-800 pb-3">
+                      <i className="fa-regular fa-credit-card"></i> 結帳與繳費確認
+                    </h3>
+
+                    {/* 明細試算 */}
+                    <div className="bg-slate-950/70 rounded-2xl p-4 border border-slate-800/80 space-y-2 text-sm">
+                      <div className="flex justify-between text-slate-400">
+                        <span>
+                          報名身分：{formData.identity.includes('表演者') ? '表演者門票' : '一般觀眾門票'}
+                        </span>
+                        <span className="font-mono text-slate-200">
+                          {formData.identity.includes('表演者') ? '$200' : '$350'} 元
+                        </span>
+                      </div>
+
+                      {formData.identity.includes('表演者') && formData.extraAudience !== '０位' && (
+                        <div className="flex justify-between text-slate-400">
+                          <span>攜帶親友觀眾（{formData.extraAudience} × $350）</span>
+                          <span className="font-mono text-slate-200">
+                            ${formData.extraAudience === '１位' ? '350' : '700'} 元
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-base">
+                        <span className="font-bold text-white">總計金額</span>
+                        <span className="font-mono font-bold text-emerald-400 text-xl">
+                          ${calculateTotal()} 元
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 預計繳費方式 */}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-200 mb-2.5">
+                        預計繳費方式 <span className="text-rose-400">*</span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {['LINE PAY', '匯款'].map((pay) => {
+                          const isSelected = formData.paymentMethod === pay;
+                          return (
+                            <label
+                              key={pay}
+                              className={`flex items-center justify-center gap-2.5 p-3.5 rounded-xl cursor-pointer border transition-all ${
+                                isSelected
+                                  ? 'bg-indigo-600/30 border-indigo-500 text-white font-medium shadow-md shadow-indigo-500/10'
+                                  : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="entry.262533890"
+                                value={pay}
+                                checked={isSelected}
+                                onChange={() => setFormData({ ...formData, paymentMethod: pay })}
+                                className="sr-only"
+                              />
+                              <i className={`fa-solid ${pay === 'LINE PAY' ? 'fa-wallet text-indigo-400' : 'fa-building-columns text-slate-500'}`}></i>
+                              <span className="text-sm">{pay}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 提交按鈕 */}
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-base shadow-xl shadow-indigo-500/25 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-[0.99]"
+                    >
+                      {isSubmitting ? (
+                        <React.Fragment>
+                          <i className="fa-solid fa-spinner fa-spin"></i>
+                          <span>資料同步送出中...</span>
+                        </React.Fragment>
+                      ) : (
+                        <React.Fragment>
+                          <span>確認並送出報名</span>
+                          <i className="fa-solid fa-paper-plane text-xs"></i>
+                        </React.Fragment>
+                      )}
+                    </button>
+                    <div className="flex items-center justify-center gap-2 mt-3 text-xs text-slate-500">
+                      <i className="fa-solid fa-shield-halved text-slate-400"></i>
+                      <span>資料將直連 Google Forms，完全無須設定試算表 ID</span>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            )}
+          </main>
+
+          {/* 頁尾 */}
+          <footer className="border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs text-slate-500 mt-12">
+            <p>© 20261122 成果發表會 - 線上報名網頁</p>
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
